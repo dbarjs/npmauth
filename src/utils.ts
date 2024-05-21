@@ -9,7 +9,7 @@ export function encodeTokenToBase64(token: string) {
 }
 
 function getConfig(): Config {
-  const config = read<Config>('npmrc.conf')
+  const config = read<Config>('.npmauthrc')
 
   return Config.parse(config)
 }

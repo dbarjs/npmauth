@@ -1,5 +1,5 @@
 {
-  "name": "@dbarjs/nauth",
+  "name": "@dbarjs/npmauth",
   "type": "module",
   "version": "0.0.7",
   "packageManager": "pnpm@9.1.1",
