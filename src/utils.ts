@@ -2,59 +2,67 @@ import process from 'node:process'
 import { Buffer } from 'node:buffer'
 import { read } from 'rc9'
 import { execa } from 'execa'
-import { Config } from './schemas'
+import type { ConfigCommand } from './schemas'
+import { ConfigMap } from './schemas'
 
 export function encodeTokenToBase64(token: string) {
   return Buffer.from(token).toString('base64')
 }
 
-function getConfig(): Config {
-  const config = read<Config>('.npmauthrc')
+export function getConfig(): ConfigMap {
+  const config = read<ConfigMap>('.npmauthrc')
 
-  return Config.parse(config)
+  return ConfigMap.parse(config)
 }
 
-export function parseConfig(config: Config = getConfig()) {
-  const parsedConfig: Record<string, string> = {}
+export function parseConfig(config: ConfigMap = getConfig()) {
+  const commands: ConfigCommand[] = []
 
-  Object.entries(config).forEach(([_registryKey, registry]) => {
+  Object.entries(config).forEach(([registryKey, registry]) => {
     if (!registry.enabled)
       return
 
-    const { host, registry: registryUrl, field } = registry
+    const { host, registry: registryUrl, field, location } = registry
 
-    Object.entries(field).forEach(([fieldKey, field]) => {
+    const getCommand = (key: string, value: string): ConfigCommand => ({
+      registryKey,
+      location,
+      key,
+      value,
+    })
+
+    Object.entries(field).forEach(([fieldKey, fieldValue]) => {
       const hostConfigKey = `${host}:${fieldKey}`
       const registryConfigKey = `${registryUrl}:${fieldKey}`
 
-      if (typeof field === 'string') {
-        parsedConfig[hostConfigKey] = field
-        parsedConfig[registryConfigKey] = field
+      if (typeof fieldValue === 'string') {
+        commands.push(getCommand(hostConfigKey, fieldValue))
+        commands.push(getCommand(registryConfigKey, fieldValue))
         return
       }
 
-      if (field.type === 'env') {
-        const token = process.env[field.key]
+      if (fieldValue.type === 'env') {
+        const token = process.env[fieldValue.key]
         if (!token) {
-          console.error(`Token not found for ${field.key}`)
+          console.error(`Token not found for ${fieldValue.key}`)
           return
         }
 
-        const encodedToken = field.encode === 'base64' ? encodeTokenToBase64(token) : token
+        const encodedToken = fieldValue.encode === 'base64' ? encodeTokenToBase64(token) : token
 
-        parsedConfig[hostConfigKey] = encodedToken
-        parsedConfig[registryConfigKey] = encodedToken
+        commands.push(getCommand(hostConfigKey, encodedToken))
+        commands.push(getCommand(registryConfigKey, encodedToken))
       }
     })
   })
 
-  return parsedConfig
+  return commands
 }
 
-export async function writeConfigWithPnpm(parsedConfig: Record<string, string>) {
-  const execute = Object.entries(parsedConfig).map(([key, value]) => {
+export async function writeConfigWithPnpm(commands: ConfigCommand[]) {
+  const execute = commands.map(({ location, key, value }) => {
     return async () => {
-      await execa('pnpm', ['config', '--global', 'set', key, value])
+      await execa('npm', ['config', `--location=${location}`, 'set', key, value])
     }
   })
 

@@ -1,8 +1,9 @@
 import 'dotenv/config'
-import { parseConfig, writeConfigWithPnpm } from './utils'
+import { getConfig, parseConfig, writeConfigWithPnpm } from './utils'
 
 export function runMain() {
-  const parsedConfig = parseConfig()
+  const config = getConfig()
+  const commands = parseConfig(config)
 
-  writeConfigWithPnpm(parsedConfig)
+  writeConfigWithPnpm(commands)
 }
