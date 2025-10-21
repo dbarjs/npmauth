@@ -1,7 +1,7 @@
 /* eslint-disable ts/no-redeclare */
 import { z } from 'zod'
 
-export const ConfigLocationEnum = z.enum(['project', 'global'])
+export const ConfigLocationEnum = z.enum(['project', 'global', 'user'])
 
 export type ConfigLocationEnum = z.infer<typeof ConfigLocationEnum>
 
@@ -15,7 +15,7 @@ export const RegistryConfig = z.object({
     key: z.string(),
     encode: z.union([z.literal('base64'), z.literal('text')]).default('text'),
   })])),
-  location: ConfigLocationEnum.default('global'),
+  location: ConfigLocationEnum.default('user'),
 })
 
 export type RegistryConfig = z.infer<typeof RegistryConfig>
@@ -26,7 +26,7 @@ export type ConfigMap = z.infer<typeof ConfigMap>
 
 export const ConfigCommand = z.object({
   registryKey: z.string(),
-  location: ConfigLocationEnum,
+  location: ConfigLocationEnum.default('user'),
   key: z.string(),
   value: z.string(),
 })
