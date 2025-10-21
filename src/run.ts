@@ -1,9 +1,9 @@
-import 'dotenv/config'
 import process from 'node:process'
 import { detect } from 'package-manager-detector'
 import { getConfig, parseConfig, writeConfigWithPnpm } from './utils'
+import 'dotenv/config'
 
-export async function runMain() {
+export async function runMain(): Promise<void> {
   const config = getConfig()
   const commands = parseConfig(config)
   const pm = await detect({

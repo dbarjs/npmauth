@@ -1,12 +1,12 @@
-import process from 'node:process'
-import { Buffer } from 'node:buffer'
-import { read } from 'rc9'
-import { execa } from 'execa'
 import type { AgentName } from 'package-manager-detector'
 import type { ConfigCommand } from './schemas'
+import { Buffer } from 'node:buffer'
+import process from 'node:process'
+import { execa } from 'execa'
+import { read } from 'rc9'
 import { ConfigMap } from './schemas'
 
-export function encodeTokenToBase64(token: string) {
+export function encodeTokenToBase64(token: string): string {
   return Buffer.from(token).toString('base64')
 }
 
@@ -16,7 +16,7 @@ export function getConfig(): ConfigMap {
   return ConfigMap.parse(config)
 }
 
-export function parseConfig(config: ConfigMap = getConfig()) {
+export function parseConfig(config: ConfigMap = getConfig()): ConfigCommand[] {
   const commands: ConfigCommand[] = []
 
   Object.entries(config).forEach(([registryKey, registry]) => {
@@ -62,7 +62,7 @@ export function parseConfig(config: ConfigMap = getConfig()) {
   return commands
 }
 
-export async function writeConfigWithPnpm(commands: ConfigCommand[], packageManagerName: AgentName = 'npm') {
+export async function writeConfigWithPnpm(commands: ConfigCommand[], packageManagerName: AgentName = 'npm'): Promise<void> {
   const managerCommand = packageManagerName === 'pnpm' ? 'pnpm' : 'npm'
 
   const execute = commands.map(({ location, key, value }) => {
@@ -71,6 +71,7 @@ export async function writeConfigWithPnpm(commands: ConfigCommand[], packageMana
     }
   })
 
-  for await (const write of execute)
+  for await (const write of execute) {
     await write()
+  }
 }
