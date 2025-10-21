@@ -65,9 +65,19 @@ export function parseConfig(config: ConfigMap = getConfig()): ConfigCommand[] {
 export async function writeConfigWithPnpm(commands: ConfigCommand[], packageManagerName: AgentName = 'npm'): Promise<void> {
   const managerCommand = packageManagerName === 'pnpm' ? 'pnpm' : 'npm'
 
+  console.warn(`Writing config using ${managerCommand}...`)
+
   const execute = commands.map(({ location, key, value }) => {
+    if (managerCommand === 'pnpm') {
+      console.warn(`Setting ${key} in pnpm config with location ${location}`)
+
+      return async () => {
+        await execa('pnpm', ['config', `--location=${location}`, 'set', key, value])
+      }
+    }
+
     return async () => {
-      await execa(managerCommand, ['config', `--location=${location}`, 'set', key, value])
+      await execa('npm', ['config', `--location=${location}`, 'set', key, value])
     }
   })
 
