@@ -2,6 +2,7 @@ import process from 'node:process'
 import { Buffer } from 'node:buffer'
 import { read } from 'rc9'
 import { execa } from 'execa'
+import type { AgentName } from 'package-manager-detector'
 import type { ConfigCommand } from './schemas'
 import { ConfigMap } from './schemas'
 
@@ -43,7 +44,9 @@ export function parseConfig(config: ConfigMap = getConfig()) {
 
       if (fieldValue.type === 'env') {
         const token = process.env[fieldValue.key]
+
         if (!token) {
+          // TODO: add strict mode to throw error
           console.error(`Token not found for ${fieldValue.key}`)
           return
         }
@@ -59,10 +62,12 @@ export function parseConfig(config: ConfigMap = getConfig()) {
   return commands
 }
 
-export async function writeConfigWithPnpm(commands: ConfigCommand[]) {
+export async function writeConfigWithPnpm(commands: ConfigCommand[], packageManagerName: AgentName = 'npm') {
+  const managerCommand = packageManagerName === 'pnpm' ? 'pnpm' : 'npm'
+
   const execute = commands.map(({ location, key, value }) => {
     return async () => {
-      await execa('npm', ['config', `--location=${location}`, 'set', key, value])
+      await execa(managerCommand, ['config', `--location=${location}`, 'set', key, value])
     }
   })
 
