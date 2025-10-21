@@ -68,9 +68,9 @@ export async function writeConfigWithPnpm(commands: ConfigCommand[], packageMana
   console.warn(`Writing config using ${managerCommand}...`)
 
   const execute = commands.map(({ location, key, value }) => {
-    if (managerCommand === 'pnpm') {
-      console.warn(`Setting ${key} in pnpm config with location ${location}`)
+    console.warn(`Setting ${key} in ${managerCommand} config with ${location} scope`)
 
+    if (managerCommand === 'pnpm') {
       return async () => {
         await execa('pnpm', ['config', `--location=${location}`, 'set', key, value])
       }
