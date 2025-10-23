@@ -1,9 +1,13 @@
 /* eslint-disable ts/no-redeclare */
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
 export const ConfigLocationEnum = z.enum(['project', 'global', 'user'])
 
 export type ConfigLocationEnum = z.infer<typeof ConfigLocationEnum>
+
+export const FieldEncodeEnum = z.union([z.literal('base64'), z.literal('text')]).optional().catch('text')
+
+export type FieldEncodeEnum = z.infer<typeof FieldEncodeEnum>
 
 export const RegistryConfig = z.object({
   enabled: z.boolean().default(true),
@@ -13,7 +17,7 @@ export const RegistryConfig = z.object({
   field: z.record(z.string(), z.union([z.string(), z.object({
     type: z.literal('env'),
     key: z.string(),
-    encode: z.union([z.literal('base64'), z.literal('text')]).optional().default('text'),
+    encode: FieldEncodeEnum,
   })])),
   location: ConfigLocationEnum.default('user'),
 })
