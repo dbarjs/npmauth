@@ -13,7 +13,7 @@ export const RegistryConfig = z.object({
   field: z.record(z.string(), z.union([z.string(), z.object({
     type: z.literal('env'),
     key: z.string(),
-    encode: z.union([z.literal('base64'), z.literal('text')]).default('text'),
+    encode: z.union([z.literal('base64'), z.literal('text')]).optional().default('text'),
   })])),
   location: ConfigLocationEnum.default('user'),
 })
